@@ -26,7 +26,7 @@
       <h3 style="color: var(--primary-color); text-align: center;">🔍 查詢預約紀錄</h3>
       
       <div class="search-input-group">
-        <input type="text" id="searchNameInput" placeholder="請輸入姓名..." onkeypress="if(event.key==='Enter') executeSearch()">
+        <input type="text" id="searchNameInput" placeholder="請輸入姓名..." autocomplete="off" onkeypress="if(event.key==='Enter') executeSearch()">
         <button onclick="executeSearch()">搜尋</button>
       </div>
 
@@ -37,7 +37,7 @@
   </div>
 
   <script>
-    // 🔗 帶入您專屬的 Google Apps Script API 部署網址
+    // 🔗 專屬的 Google Apps Script API 部署網址
     const API_URL = "https://script.google.com/macros/s/AKfycbxI7yHhzArmPhy47r65LkCjJVXdJ4hnZFJKaFd1aXJ-I51kLPNr__fGWk9HG4VHtTHj/exec";
 
     // 1. 頁面載入完成後自動請求場次資料
@@ -86,7 +86,8 @@
 
     // 2. 執行姓名查詢功能
     function executeSearch() {
-      const name = document.getElementById('searchNameInput').value.trim();
+      const nameInput = document.getElementById('searchNameInput');
+      const name = nameInput.value.trim();
       const resultsDiv = document.getElementById('searchResults');
 
       if (!name) {
@@ -147,9 +148,12 @@
       resultsDiv.innerHTML = html;
     }
 
-    // Modal 控制函式
+    // Modal 控制函式 (含自動聚焦輸入框)
     function openModal() {
       document.getElementById('searchModal').style.display = 'flex';
+      setTimeout(() => {
+        document.getElementById('searchNameInput').focus();
+      }, 100);
     }
     function closeModal() {
       document.getElementById('searchModal').style.display = 'none';
