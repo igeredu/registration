@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2026 全國大專校院通識教育主管會議 - 主題短講分組討論 場次報名</title>
-  
-  <!-- 🔗 載入獨立 CSS 檔案 styles.css -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,9 +13,7 @@
       <p>主題短講分組討論 場次報名</p>
     </header>
 
-    <!-- 預約表單畫面 -->
     <div id="bookingSection" class="form-body">
-      <!-- Google Form POST 網址 -->
       <form id="bookingForm" action="https://docs.google.com/forms/d/e/1FAIpQLSeZyGRFyr4pFKzSv1eDiN8UbbEsX4HC4_QfNPuh7jwWK3hE6w/formResponse" method="POST" target="hidden_iframe" onsubmit="handleSubmit()">
         
         <div class="form-group">
@@ -30,7 +26,6 @@
           <input type="text" id="unit" name="entry.956378695" required placeholder="請輸入服務學校或單位名稱">
         </div>
 
-        <!-- 隱藏欄位：時段一與時段二的 Entry ID -->
         <input type="hidden" id="sessionPeriod1" name="entry.2034660676" required>
         <input type="hidden" id="sessionPeriod2" name="entry.519504198" required>
 
@@ -53,20 +48,17 @@
         2. 預約成功後請截圖儲存確認憑證。
       </div>
 
-      <!-- 放置在注意事項下方的查詢預約按鈕 -->
       <div style="text-align: center; margin-top: 20px;">
         <button type="button" class="search-bottom-btn" onclick="openSearchModal()">🔍 查詢預約紀錄</button>
       </div>
     </div>
 
-    <!-- 預約成功畫面 (含即時個人預約明細卡片) -->
     <div id="successSection" class="form-body" style="display: none;">
       <div class="success-box">
         <div class="success-icon">✓</div>
         <h2>預約提交成功！</h2>
         <p>您的預約資料已成功送出，請截圖本畫面作為憑證。</p>
 
-        <!-- 個人報名明細憑證區塊 -->
         <div id="summaryCard" class="search-result-item" style="margin: 20px 0; padding: 16px; background: #f0f4f8; border: 1.5px solid var(--primary-color, #003366); border-radius: 8px; text-align: left;">
           <h3 style="margin-top:0; color: var(--primary-color, #003366); border-bottom: 1px solid #ccc; padding-bottom: 8px; font-size: 1.1rem;">📋 報名成功憑證</h3>
           <p style="margin: 8px 0;"><strong>👤 姓名：</strong><span id="summaryName"></span></p>
@@ -88,10 +80,8 @@
     <footer>iGER提升大學通識教育計畫</footer>
   </div>
 
-  <!-- 隱藏 iframe 防止頁面重整/跳轉（✅ 安全觸發模式） -->
   <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="checkIframeSubmit()"></iframe>
 
-  <!-- 查詢紀錄 Modal 彈出視窗 -->
   <div id="searchModal" class="modal-overlay">
     <div class="modal-content">
       <span class="modal-close" onclick="closeSearchModal()">&times;</span>
@@ -101,40 +91,81 @@
         <input type="text" id="searchNameInput" placeholder="請輸入姓名" onkeypress="if(event.key==='Enter') executeSearch()">
       </div>
       <button class="action-btn" style="margin-top: 0;" onclick="executeSearch()">搜尋</button>
-      
       <div id="searchResults" style="margin-top: 15px;"></div>
     </div>
   </div>
 
   <script>
-    // 🔗 專屬的 Google Apps Script REST API 部署網址
     const API_URL = "https://script.google.com/macros/s/AKfycbxI7yHhzArmPhy47r65LkCjJVXdJ4hnZFJKaFd1aXJ-I51kLPNr__fGWk9HG4VHtTHj/exec";
 
     var submitted = false;
     var selectedP1 = false;
     var selectedP2 = false;
-
-    // 暫存選擇場次的時間與地點
-    var selectedP1Time = '';
-    var selectedP2Time = '';
-    var selectedP1Loc = '';
-    var selectedP2Loc = '';
+    var selectedP1Time = '', selectedP2Time = '', selectedP1Loc = '', selectedP2Loc = '';
     var submittedData = {};
 
     window.onload = function() {
       fetchSessions();
     };
 
-    // ✅ 安全防呆函式：檢查 submitted 狀態
     function checkIframeSubmit() {
       if (typeof submitted !== 'undefined' && submitted) {
         showSuccess();
       }
     }
 
-    // 1. 改用 fetch API 載入場次資料
     function fetchSessions() {
-      fetch(`${API_URL}?action=getSessions`) .then(response => response.json()) .then(res => { if (res.status === 'success') { renderSessions(res.data); } else { var errMsg = '<p style="color:red; text-align:center;">載入場次失敗：' + (res.message \vert{}\vert{} '未知錯誤') + '</p>'; document.getElementById('containerPeriod1').innerHTML = errMsg; document.getElementById('containerPeriod2').innerHTML = errMsg; } }) .catch(err => { console.error("後端載入失敗：", err); var errMsg = '<p style="color:red; text-align:center;">連線失敗，請確認 API 網址與網路連線。</p>'; document.getElementById('containerPeriod1').innerHTML = errMsg; document.getElementById('containerPeriod2').innerHTML = errMsg; }); }  function renderSessions(sessions) { var containerP1 = document.getElementById('containerPeriod1'); var containerP2 = document.getElementById('containerPeriod2');  containerP1.innerHTML = ''; containerP2.innerHTML = '';  if (!sessions \vert{}\vert{} sessions.length === 0) { var noDataMsg = '<p style="text-align:center; grid-column: 1/-1;">目前尚無開放場次，請確認試算表「場次設定」工作表是否有資料。</p>'; containerP1.innerHTML = noDataMsg; containerP2.innerHTML = noDataMsg; return; }  var countP1 = 0; var countP2 = 0;  sessions.forEach(function(s) { var card = document.createElement('div');  var limitNum = Number(s.limit) \vert{}\vert{} 0; var regNum = Number(s.registered) \vert{}\vert{} 0; // ✅ 修正減法運算式 var remaining = limitNum - regNum; if (remaining < 0) remaining = 0;  var isFull = (String(s.status).trim() === '已額滿') \vert{}\vert{} (limitNum > 0 && remaining <= 0);  card.className = 'session-card ' + (isFull ? 'disabled' : ''); var badgeClass = isFull ? 'badge-full' : 'badge-open'; var statusText = isFull ? '已額滿' : (s.status \vert{}\vert{} '開放報名');  var isWarning = remaining <= 3 && !isFull; var countColor = isWarning ? '#e63946' : '#888'; var countWeight = isWarning ? 'bold' : 'normal'; var locDisplay = s.location ? `📍 ${s.location}` : '📍 待定';
+      fetch(`${API_URL}?action=getSessions`)
+        .then(response => response.json())
+        .then(res => {
+          if (res.status === 'success') {
+            renderSessions(res.data);
+          } else {
+            showError("後端回傳錯誤：" + res.message);
+          }
+        })
+        .catch(err => {
+          showError("連線失敗，請檢查 API 部署與網路。");
+        });
+    }
+
+    function showError(msg) {
+      const errMsg = `<p style="color:red; text-align:center; grid-column: 1/-1;">⚠️ ${msg}</p>`;
+      document.getElementById('containerPeriod1').innerHTML = errMsg;
+      document.getElementById('containerPeriod2').innerHTML = errMsg;
+    }
+
+    function renderSessions(sessions) {
+      var containerP1 = document.getElementById('containerPeriod1');
+      var containerP2 = document.getElementById('containerPeriod2');
+      containerP1.innerHTML = '';
+      containerP2.innerHTML = '';
+
+      if (!sessions || sessions.length === 0) {
+        var noDataMsg = '<p style="text-align:center; grid-column: 1/-1;">目前尚無開放場次。</p>';
+        containerP1.innerHTML = noDataMsg;
+        containerP2.innerHTML = noDataMsg;
+        return;
+      }
+
+      var countP1 = 0, countP2 = 0;
+
+      sessions.forEach(function(s) {
+        var card = document.createElement('div');
+        var limitNum = Number(s.limit) || 0;
+        var regNum = Number(s.registered) || 0;
+        var remaining = limitNum - regNum;
+        if (remaining < 0) remaining = 0;
+
+        var isFull = (String(s.status).trim() === '已額滿') || (limitNum > 0 && remaining <= 0);
+        card.className = 'session-card ' + (isFull ? 'disabled' : '');
+        var badgeClass = isFull ? 'badge-full' : 'badge-open';
+        var statusText = isFull ? '已額滿' : (s.status || '開放報名');
+
+        var isWarning = remaining <= 3 && !isFull;
+        var countColor = isWarning ? '#e63946' : '#888';
+        var countWeight = isWarning ? 'bold' : 'normal';
+        var locDisplay = s.location ? `📍 ${s.location}` : '📍 待定';
 
         card.innerHTML = `
           <div class="card-header">
@@ -147,7 +178,7 @@
             <span class="card-location" style="color: #444;">${locDisplay}</span>
           </div>
           <div style="margin-top: 4px; text-align: right;">
-            <span class="card-count" style="color: ${countColor}; font-weight:${countWeight}; font-size: 0.85rem;">
+            <span class="card-count" style="color: ${countColor}; font-weight: ${countWeight}; font-size: 0.85rem;">
               剩餘: ${remaining} 名
             </span>
           </div>
@@ -203,16 +234,17 @@
 
     function handleSubmit() {
       submitted = true;
-
       submittedData = {
         name: document.getElementById('name').value,
         unit: document.getElementById('unit').value,
         period1: document.getElementById('sessionPeriod1').value,
-        timeP1: selectedP1Time ? `（${selectedP1Time}）` : '', locP1: selectedP1Loc, period2: document.getElementById('sessionPeriod2').value, timeP2: selectedP2Time ? `（${selectedP2Time}）` : '',
+        timeP1: selectedP1Time ? `（${selectedP1Time}）` : '',
+        locP1: selectedP1Loc,
+        period2: document.getElementById('sessionPeriod2').value,
+        timeP2: selectedP2Time ? `（${selectedP2Time}）` : '',
         locP2: selectedP2Loc,
         time: new Date().toLocaleString()
       };
-
       document.getElementById('submitBtn').disabled = true;
       document.getElementById('submitBtn').innerText = '預約處理中...';
     }
@@ -221,11 +253,9 @@
       document.getElementById('summaryName').innerText = submittedData.name || '';
       document.getElementById('summaryUnit').innerText = submittedData.unit || '';
       document.getElementById('summaryTime').innerText = submittedData.time || '';
-      
       document.getElementById('summaryTimeP1').innerText = submittedData.timeP1 || '';
       document.getElementById('summaryP1').innerText = submittedData.period1 || '';
       document.getElementById('summaryLocP1').innerText = submittedData.locP1 || '無指定';
-      
       document.getElementById('summaryTimeP2').innerText = submittedData.timeP2 || '';
       document.getElementById('summaryP2').innerText = submittedData.period2 || '';
       document.getElementById('summaryLocP2').innerText = submittedData.locP2 || '無指定';
@@ -236,21 +266,12 @@
     }
 
     function resetForm() {
-      submitted = false;
-      selectedP1 = false;
-      selectedP2 = false;
-      selectedP1Time = '';
-      selectedP2Time = '';
-      selectedP1Loc = '';
-      selectedP2Loc = '';
+      submitted = false; selectedP1 = false; selectedP2 = false;
+      selectedP1Time = ''; selectedP2Time = ''; selectedP1Loc = ''; selectedP2Loc = '';
       submittedData = {};
-
       document.getElementById('bookingForm').reset();
       document.getElementById('bookingSection').style.display = 'block';
       document.getElementById('successSection').style.display = 'none';
-      
-      document.getElementById('containerPeriod1').innerHTML = '<p>場次載入中...</p>';
-      document.getElementById('containerPeriod2').innerHTML = '<p>場次載入中...</p>';
       fetchSessions();
       checkSubmitStatus();
     }
@@ -259,23 +280,19 @@
       document.getElementById('searchModal').style.display = 'flex';
       document.getElementById('searchResults').innerHTML = '';
       document.getElementById('searchNameInput').value = '';
-      setTimeout(() => { document.getElementById('searchNameInput').focus(); }, 100);
     }
 
     function closeSearchModal() {
       document.getElementById('searchModal').style.display = 'none';
     }
 
-    // 2. 改用 fetch API 查詢報名紀錄
     function executeSearch() {
       var name = document.getElementById('searchNameInput').value.trim();
       var resultsDiv = document.getElementById('searchResults');
-      
       if (!name) {
         resultsDiv.innerHTML = '<p style="color:red; text-align:center;">請輸入姓名！</p>';
         return;
       }
-      
       resultsDiv.innerHTML = '<p style="text-align:center;">搜尋中...</p>';
       
       fetch(`${API_URL}?action=searchBooking&name=${encodeURIComponent(name)}`)
@@ -287,14 +304,40 @@
               resultsDiv.innerHTML = '<p style="color:#666; text-align:center;">查無此姓名的報名紀錄。</p>';
               return;
             }
-            
             var html = '';
             results.forEach(function(r) {
-              var timeStr1 = r.time1 ? `（${r.time1}）` : ''; var timeStr2 = r.time2 ? `（${r.time2}）` : '';
+              var timeStr1 = r.time1 ? `（${r.time1}）` : '';
+              var timeStr2 = r.time2 ? `（${r.time2}）` : '';
 
               html += `
                 <div class="search-result-item" style="margin-bottom: 12px; padding: 14px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px;">
                   <div style="font-size: 1.05rem; font-weight: bold; color: var(--primary-color, #003366);">
                     👤 ${r.name} <span style="font-size: 0.9rem; font-weight: normal; color: #555;">(${r.unit})</span>
                   </div>
-                  <div style="font-size: 0.8rem; color: #8
+                  <div style="font-size: 0.8rem; color: #888; margin-top: 2px;">⏰ 登記時間：${r.timestamp}</div>
+                  <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
+                  <div style="margin-bottom: 8px;">
+                    <strong>📌 時段一${timeStr1}：</strong><br>
+                    <span style="display:inline-block; margin-left: 16px; color: #222;">${r.period1}</span><br>
+                    <span style="display:inline-block; margin-left: 16px; color: #555; font-size: 0.9rem;">📍 地點：${r.loc1}</span>
+                  </div>
+                  <div>
+                    <strong>📌 時段二${timeStr2}：</strong><br>
+                    <span style="display:inline-block; margin-left: 16px; color: #222;">${r.period2}</span><br>
+                    <span style="display:inline-block; margin-left: 16px; color: #555; font-size: 0.9rem;">📍 地點：${r.loc2}</span>
+                  </div>
+                </div>
+              `;
+            });
+            resultsDiv.innerHTML = html;
+          } else {
+            resultsDiv.innerHTML = '<p style="color:red; text-align:center;">搜尋失敗：' + res.message + '</p>';
+          }
+        })
+        .catch(err => {
+          resultsDiv.innerHTML = '<p style="color:red; text-align:center;">網路連線異常，請稍後再試。</p>';
+        });
+    }
+  </script>
+</body>
+</html>
