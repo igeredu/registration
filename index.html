@@ -4,20 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2026 全國大專校院通識教育主管會議 - 主題短講分組討論 場次報名</title>
-  
-  <!-- 🔗 引進獨立的 styles.css 樣式檔 -->
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--primary-color); }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    .submit-btn { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    .submit-btn:hover { background: #218838; }
+    .radio-option { display: block; padding: 10px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; background: #fff; cursor: pointer; }
+    .radio-option:hover { background: #f0f7ff; }
+  </style>
 </head>
 <body>
 
   <div class="container">
     <h2>2026 全國大專校院通識教育主管會議<br>主題短講分組討論 場次報名</h2>
     
-    <!-- 場次載入區域 -->
-    <div id="sessionsContainer" class="loading-text">⏳ 正在載入場次與地點資料...</div>
+    <form id="bookingForm" onsubmit="handleFormSubmit(event)">
+      <!-- 個人資料輸入區 -->
+      <div class="form-group">
+        <label for="userName">👤 姓名 <span style="color:red;">*</span></label>
+        <input type="text" id="userName" required placeholder="請輸入您的姓名">
+      </div>
+
+      <div class="form-group">
+        <label for="userUnit">🏫 服務單位 / 職稱 <span style="color:red;">*</span></label>
+        <input type="text" id="userUnit" required placeholder="例如：○○大學 通識教育中心主任">
+      </div>
+
+      <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+
+      <!-- 場次選擇區 -->
+      <h3 style="color: var(--primary-color); margin-bottom: 12px;">📌 選擇參加場次</h3>
+      <div id="sessionsContainer" class="loading-text">⏳ 正在載入場次與地點資料...</div>
+
+      <!-- 送出按鈕 -->
+      <button type="submit" id="submitBtn" class="submit-btn">✅ 確認送出報名</button>
+    </form>
     
     <!-- 底部查詢預約按鈕 -->
-    <button class="search-bottom-btn" onclick="openModal()">🔍 查詢預約紀錄</button>
+    <button class="search-bottom-btn" onclick="openModal()">🔍 查詢報名紀錄</button>
   </div>
 
   <!-- 查詢預約紀錄 Modal 視窗 -->
@@ -37,14 +63,13 @@
   </div>
 
   <script>
-    // 🔗 專屬的 Google Apps Script API 部署網址
     const API_URL = "https://script.google.com/macros/s/AKfycbxI7yHhzArmPhy47r65LkCjJVXdJ4hnZFJKaFd1aXJ-I51kLPNr__fGWk9HG4VHtTHj/exec";
 
-    // 1. 頁面載入完成後自動請求場次資料
     document.addEventListener("DOMContentLoaded", function() {
       fetchSessions();
     });
 
+    // 1. 載入並渲染包含 Radio 單選鈕的場次表單
     function fetchSessions() {
       const container = document.getElementById('sessionsContainer');
       
@@ -52,42 +77,118 @@
         .then(response => response.json())
         .then(res => {
           if (res.status === 'success') {
-            renderSessions(res.data);
+            renderSessionsForm(res.data);
           } else {
             container.innerHTML = `<p style="color:red; text-align:center;">載入場次失敗：${res.message}</p>`;
           }
         })
         .catch(err => {
-          console.error('Fetch error:', err);
           container.innerHTML = `<p style="color:red; text-align:center;">連線失敗，請確認網路連線與 API 權限。</p>`;
         });
     }
 
-    function renderSessions(sessions) {
+    function renderSessionsForm(sessions) {
       const container = document.getElementById('sessionsContainer');
       if (!sessions || sessions.length === 0) {
         container.innerHTML = '<p style="text-align:center;">目前無開放場次。</p>';
         return;
       }
 
+      // 依據 period (時段一、時段二) 分組
+      const period1List = sessions.filter(s => s.period.indexOf('一') !== -1 || s.period.indexOf('1') !== -1);
+      const period2List = sessions.filter(s => s.period.indexOf('二') !== -1 || s.period.indexOf('2') !== -1);
+
       let html = '';
-      sessions.forEach(s => {
-        html += `
-          <div class="session-card">
-            <div class="session-title">[${s.period}] ${s.topic}</div>
-            <div class="session-info">⏰ 時間：${s.time || '未定'}</div>
-            <div class="session-info">📍 地點：${s.location || '無指定'}</div>
-            <div class="session-info">👥 名額：已報名 ${s.registered} / 上限 ${s.limit} (${s.status})</div>
-          </div>
-        `;
-      });
+
+      // 時段一渲染
+      html += '<h4 style="margin: 15px 0 8px 0; color:#555;">🔹 時段一選擇</h4>';
+      if (period1List.length === 0) {
+        html += '<p style="color:#888;">無可選場次</p>';
+      } else {
+        period1List.forEach(s => {
+          const isFull = s.registered >= s.limit && s.limit > 0;
+          const disabledAttr = isFull ? 'disabled' : '';
+          const statusText = isFull ? ' [已額滿]' : '';
+
+          html += `
+            <label class="radio-option" style="${isFull ? 'opacity:0.6;' : ''}">
+              <input type="radio" name="topic1" value="${s.topic}" ${disabledAttr}>
+              <strong>[${s.period}] ${s.topic}</strong>${statusText}<br>
+              <small>⏰ ${s.time || '未定'} | 📍 地點：${s.location || '無指定'} (${s.registered}/${s.limit}人)</small>
+            </label>
+          `;
+        });
+      }
+
+      // 時段二渲染
+      html += '<h4 style="margin: 15px 0 8px 0; color:#555;">🔹 時段二選擇</h4>';
+      if (period2List.length === 0) {
+        html += '<p style="color:#888;">無可選場次</p>';
+      } else {
+        period2List.forEach(s => {
+          const isFull = s.registered >= s.limit && s.limit > 0;
+          const disabledAttr = isFull ? 'disabled' : '';
+          const statusText = isFull ? ' [已額滿]' : '';
+
+          html += `
+            <label class="radio-option" style="${isFull ? 'opacity:0.6;' : ''}">
+              <input type="radio" name="topic2" value="${s.topic}" ${disabledAttr}>
+              <strong>[${s.period}] ${s.topic}</strong>${statusText}<br>
+              <small>⏰ ${s.time || '未定'} | 📍 地點：${s.location || '無指定'} (${s.registered}/${s.limit}人)</small>
+            </label>
+          `;
+        });
+      }
+
       container.innerHTML = html;
     }
 
-    // 2. 執行姓名查詢功能
+    // 2. 處理表單送出
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('userName').value.trim();
+      const unit = document.getElementById('userUnit').value.trim();
+      const topic1El = document.querySelector('input[name="topic1"]:checked');
+      const topic2El = document.querySelector('input[name="topic2"]:checked');
+      
+      const topic1 = topic1El ? topic1El.value : '';
+      const topic2 = topic2El ? topic2El.value : '';
+
+      if (!topic1 && !topic2) {
+        alert('請至少選擇一個場次！');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = '⏳ 正在傳送報名資料...';
+
+      const url = `${API_URL}?action=submitBooking&name=${encodeURIComponent(name)}&unit=${encodeURIComponent(unit)}&topic1=${encodeURIComponent(topic1)}&topic2=${encodeURIComponent(topic2)}`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            alert('🎉 報名成功！感謝您的參與。');
+            document.getElementById('bookingForm').reset();
+            fetchSessions(); // 重新整理場次報名人數
+          } else {
+            alert('❌ 報名失敗：' + res.message);
+          }
+        })
+        .catch(err => {
+          alert('❌ 網路傳送異常，請稍後再試。');
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerText = '✅ 確認送出報名';
+        });
+    }
+
+    // 3. 執行姓名查詢功能
     function executeSearch() {
-      const nameInput = document.getElementById('searchNameInput');
-      const name = nameInput.value.trim();
+      const name = document.getElementById('searchNameInput').value.trim();
       const resultsDiv = document.getElementById('searchResults');
 
       if (!name) {
@@ -148,12 +249,9 @@
       resultsDiv.innerHTML = html;
     }
 
-    // Modal 控制函式 (含自動聚焦輸入框)
     function openModal() {
       document.getElementById('searchModal').style.display = 'flex';
-      setTimeout(() => {
-        document.getElementById('searchNameInput').focus();
-      }, 100);
+      setTimeout(() => { document.getElementById('searchNameInput').focus(); }, 100);
     }
     function closeModal() {
       document.getElementById('searchModal').style.display = 'none';
