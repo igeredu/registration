@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 全國大專校院通識教育主管會議 - 主題短講分組討論 場次報名</title>
+  
+  <!-- 🔗 引進獨立的 styles.css 樣式檔 -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <h2>2026 全國大專校院通識教育主管會議<br>主題短講分組討論 場次報名</h2>
+    
+    <!-- 場次載入區域 -->
+    <div id="sessionsContainer" class="loading-text">⏳ 正在載入場次與地點資料...</div>
+    
+    <!-- 底部查詢預約按鈕 -->
+    <button class="search-bottom-btn" onclick="openModal()">🔍 查詢預約紀錄</button>
+  </div>
+
+  <!-- 查詢預約紀錄 Modal 視窗 -->
+  <div id="searchModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 style="color: var(--primary-color); text-align: center;">🔍 查詢預約紀錄</h3>
+      
+      <div class="search-input-group">
+        <input type="text" id="searchNameInput" placeholder="請輸入姓名..." onkeypress="if(event.key==='Enter') executeSearch()">
+        <button onclick="executeSearch()">搜尋</button>
+      </div>
+
+      <div id="searchResults"></div>
+
+      <button class="close-btn" onclick="closeModal()">關閉視窗</button>
+    </div>
+  </div>
+
+  <script>
+    // 🔗 帶入您專屬的 Google Apps Script API 部署網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbxI7yHhzArmPhy47r65LkCjJVXdJ4hnZFJKaFd1aXJ-I51kLPNr__fGWk9HG4VHtTHj/exec";
+
+    // 1. 頁面載入完成後自動請求場次資料
+    document.addEventListener("DOMContentLoaded", function() {
+      fetchSessions();
+    });
+
+    function fetchSessions() {
+      const container = document.getElementById('sessionsContainer');
+      
+      fetch(`${API_URL}?action=getSessions`)
+        .then(response => response.json())
+        .then(res => {
+          if (res.status === 'success') {
+            renderSessions(res.data);
+          } else {
+            container.innerHTML = `<p style="color:red; text-align:center;">載入場次失敗：${res.message}</p>`;
+          }
+        })
+        .catch(err => {
+          console.error('Fetch error:', err);
+          container.innerHTML = `<p style="color:red; text-align:center;">連線失敗，請確認網路連線與 API 權限。</p>`;
+        });
+    }
+
+    function renderSessions(sessions) {
+      const container = document.getElementById('sessionsContainer');
+      if (!sessions || sessions.length === 0) {
+        container.innerHTML = '<p style="text-align:center;">目前無開放場次。</p>';
+        return;
+      }
+
+      let html = '';
+      sessions.forEach(s => {
+        html += `
+          <div class="session-card">
+            <div class="session-title">[${s.period}] ${s.topic}</div>
+            <div class="session-info">⏰ 時間：${s.time || '未定'}</div>
+            <div class="session-info">📍 地點：${s.location || '無指定'}</div>
+            <div class="session-info">👥 名額：已報名 ${s.registered} / 上限 ${s.limit} (${s.status})</div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // 2. 執行姓名查詢功能
+    function executeSearch() {
+      const name = document.getElementById('searchNameInput').value.trim();
+      const resultsDiv = document.getElementById('searchResults');
+
+      if (!name) {
+        resultsDiv.innerHTML = '<p style="color:red; text-align:center; margin-top:10px;">請輸入姓名！</p>';
+        return;
+      }
+
+      resultsDiv.innerHTML = '<p style="text-align:center; margin-top:10px;">搜尋中...</p>';
+
+      fetch(`${API_URL}?action=searchBooking&name=${encodeURIComponent(name)}`)
+        .then(response => response.json())
+        .then(res => {
+          if (res.status === 'success') {
+            displaySearchResults(res.data);
+          } else {
+            resultsDiv.innerHTML = `<p style="color:red; text-align:center;">搜尋失敗：${res.message}</p>`;
+          }
+        })
+        .catch(err => {
+          resultsDiv.innerHTML = '<p style="color:red; text-align:center;">網路連線異常，請稍後再試。</p>';
+        });
+    }
+
+    function displaySearchResults(results) {
+      const resultsDiv = document.getElementById('searchResults');
+      if (!results || results.length === 0) {
+        resultsDiv.innerHTML = '<p style="color:#666; text-align:center; margin-top:15px;">查無此姓名的報名紀錄。</p>';
+        return;
+      }
+
+      let html = '';
+      results.forEach(r => {
+        const timeStr1 = r.time1 ? `（${r.time1}）` : '';
+        const timeStr2 = r.time2 ? `（${r.time2}）` : '';
+
+        html += `
+          <div style="margin-top: 12px; padding: 12px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <div style="font-size: 1rem; font-weight: bold; color: var(--primary-color);">
+              👤 ${r.name} <span style="font-size: 0.85rem; font-weight: normal; color: #555;">(${r.unit})</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #888; margin-top: 2px;">⏰ 登記時間：${r.timestamp}</div>
+            <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
+            
+            <div style="margin-bottom: 6px; font-size: 0.9rem;">
+              <strong>📌 時段一${timeStr1}：</strong><br>
+              <span style="margin-left: 12px; color: #222;">${r.period1}</span><br>
+              <span style="margin-left: 12px; color: #555;">📍 地點：${r.loc1}</span>
+            </div>
+
+            <div style="font-size: 0.9rem;">
+              <strong>📌 時段二${timeStr2}：</strong><br>
+              <span style="margin-left: 12px; color: #222;">${r.period2}</span><br>
+              <span style="margin-left: 12px; color: #555;">📍 地點：${r.loc2}</span>
+            </div>
+          </div>
+        `;
+      });
+      resultsDiv.innerHTML = html;
+    }
+
+    // Modal 控制函式
+    function openModal() {
+      document.getElementById('searchModal').style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('searchModal').style.display = 'none';
+      document.getElementById('searchResults').innerHTML = '';
+      document.getElementById('searchNameInput').value = '';
+    }
+  </script>
+</body>
+</html>
