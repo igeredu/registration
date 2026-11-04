@@ -10,7 +10,7 @@
   --border-color: #e0e0e0;
 }
 
-/* 修正全域選擇器符號為 * */
+/* ✅ 已修復：全域選擇器為 * */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -50,7 +50,6 @@ header p {
   font-size: 1.1rem;
 }
 
-/* 表單區塊 */
 .form-body {
   margin-top: 10px;
 }
@@ -72,12 +71,6 @@ header p {
   border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.2s;
-}
-
-.form-group input[type="text"]:focus {
-  border-color: var(--secondary-color);
-  outline: none;
 }
 
 .section-title {
@@ -89,7 +82,6 @@ header p {
   border-bottom: 2px solid var(--primary-color);
 }
 
-/* 場次卡片雙欄網格 */
 .session-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -97,7 +89,6 @@ header p {
   margin-bottom: 16px;
 }
 
-/* 場次卡片主體 */
 .session-card {
   border: 2px solid var(--border-color);
   border-radius: 8px;
@@ -105,7 +96,6 @@ header p {
   background: #fff;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  position: relative;
 }
 
 .session-card:hover:not(.disabled) {
@@ -114,14 +104,12 @@ header p {
   transform: translateY(-2px);
 }
 
-/* 卡片被點擊選取狀態 */
 .session-card.selected {
   border-color: var(--secondary-color);
   background-color: #f0f7ff;
   box-shadow: 0 0 0 1px var(--secondary-color);
 }
 
-/* 額滿/停用卡片狀態 */
 .session-card.disabled {
   background-color: #f9f9f9;
   border-color: #eee;
@@ -143,4 +131,127 @@ header p {
   line-height: 1.4;
 }
 
-/* 狀態標籤 (開放報名 / 已額滿
+.badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+.badge-open {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.badge-full {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.submit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.search-bottom-btn {
+  width: 100%;
+  max-width: 300px;
+  padding: 10px 16px;
+  background-color: #ffffff;
+  color: var(--primary-color);
+  border: 1.5px solid var(--primary-color);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.notice {
+  background-color: #fff9e6;
+  border-left: 4px solid #ffc107;
+  padding: 12px;
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 20px;
+  border-radius: 4px;
+}
+
+.success-box {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.success-icon {
+  width: 60px;
+  height: 60px;
+  background-color: #28a745;
+  color: white;
+  font-size: 32px;
+  line-height: 60px;
+  border-radius: 50%;
+  margin: 0 auto 16px auto;
+}
+
+.action-btn {
+  padding: 10px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 10px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+}
+
+footer {
+  text-align: center;
+  margin-top: 30px;
+  color: #888;
+  font-size: 0.85rem;
+}
